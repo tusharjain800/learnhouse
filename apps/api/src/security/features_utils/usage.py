@@ -339,56 +339,7 @@ def check_feature_access(
     org_id: int,
     db_session: Session,
 ) -> bool:
-    """
-    Check if a feature is accessible based on plan level or OSS mode.
-
-    For features that require a minimum plan level (e.g., versioning requires 'standard'),
-    this function checks:
-    1. If OSS mode is enabled → allow access
-    2. If the organization's plan meets the required level → allow access
-    3. Otherwise → deny access with 403
-
-    Args:
-        feature: The feature key (e.g., 'versioning', 'ai')
-        org_id: The organization ID
-        db_session: Database session
-
-    Returns:
-        True if access is allowed
-
-    Raises:
-        HTTPException 403 if access is denied
-    """
-    # OSS mode enables all features
-    if _is_non_saas():
-        return True
-
-    # Get required plan for this feature
-    required_plan = get_required_plan_for_feature(feature)
-
-    # If no plan requirement, allow access
-    if required_plan is None:
-        return True
-
-    # Get the organization's plan
-    statement = select(OrganizationConfig).where(OrganizationConfig.org_id == org_id)
-    org_config = db_session.exec(statement).first()
-
-    if org_config is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Organization has no config",
-        )
-
-    org_plan = _get_org_plan(org_config)
-
-    # Check if plan meets requirement
-    if not plan_meets_requirement(org_plan, required_plan):
-        raise HTTPException(
-            status_code=403,
-            detail=f"{feature.capitalize()} requires {required_plan} plan or higher. Current plan: {org_plan}",
-        )
-
+    """All features are accessible."""
     return True
 
 
@@ -707,67 +658,7 @@ def check_ai_credits(
     org_id: int,
     db_session: Session,
 ) -> bool:
-    """Check if the organization has AI credits available."""
-    from src.security.features_utils.resolve import resolve_feature
-
-    statement = select(OrganizationConfig).where(OrganizationConfig.org_id == org_id)
-    org_config = db_session.exec(statement).first()
-
-    if org_config is None:
-        raise HTTPException(
-            status_code=404,
-            detail="Organization has no config",
-        )
-
-    resolved = resolve_feature("ai", org_config.config or {}, org_id)
-
-    if not resolved["enabled"]:
-        raise HTTPException(
-            status_code=403,
-            detail="AI is not enabled for this organization",
-        )
-
-    if _is_non_saas():
-        return True
-
-    org_plan = _get_org_plan(org_config)
-    r = _get_redis_client()
-
-    base_credits = get_ai_credit_limit(org_plan)
-
-    if base_credits == -1:
-        return True
-
-    if base_credits == 0:
-        raise HTTPException(
-            status_code=403,
-            detail="AI credits are not available on the free plan. Please upgrade to Standard or Pro.",
-        )
-
-    # Include override extra_limit
-    config = org_config.config or {}
-    extra = 0
-    if config.get("config_version", "1.0").startswith("2"):
-        extra = config.get("overrides", {}).get("ai", {}).get("extra_limit", 0)
-
-    # Batch-fetch both keys in a single round-trip
-    purchased_raw, used_raw = r.mget(
-        f"ai_credits_purchased:{org_id}",
-        f"ai_credits_used:{org_id}",
-    )
-    purchased_credits_count = int(purchased_raw) if purchased_raw else 0
-
-    total_credits = base_credits + extra + purchased_credits_count
-
-    used_credits_count = int(used_raw) if used_raw else 0
-
-    remaining_credits = total_credits - used_credits_count
-    if remaining_credits <= 0:
-        raise HTTPException(
-            status_code=403,
-            detail=f"AI credit limit reached. You have used all {total_credits} credits.",
-        )
-
+    """AI credits are unlimited."""
     return True
 
 

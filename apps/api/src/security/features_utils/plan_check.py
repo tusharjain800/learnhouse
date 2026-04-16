@@ -15,28 +15,8 @@ from src.security.features_utils.plans import PlanLevel, plan_meets_requirement
 
 
 def _check_mode_bypass(feature_name: str) -> bool | None:
-    """
-    Check mode-based bypass for plan dependencies.
-
-    Returns:
-        True if access should be granted without plan check
-        None if normal plan check should proceed (SaaS mode)
-
-    Raises:
-        HTTPException 403 if access is blocked (OSS + EE-only feature)
-    """
-    mode = get_deployment_mode()
-    if mode == 'ee':
-        return True
-    if mode == 'oss':
-        feature_key = feature_name.lower().replace(' ', '_')
-        if feature_key in EE_ONLY_FEATURES:
-            raise HTTPException(
-                status_code=403,
-                detail=f"{feature_name} is not available in OSS mode. Enterprise Edition is required.",
-            )
-        return True
-    return None  # SaaS — proceed with plan check
+    """All features are available — always bypass plan checks."""
+    return True
 
 
 def get_org_plan(org_id: int, db_session: Session) -> PlanLevel:

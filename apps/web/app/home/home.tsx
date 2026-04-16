@@ -229,16 +229,6 @@ function HomeClient() {
                 })}
             </div>
 
-            {/* Footer */}
-            <a
-              href="https://learnhouse.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-10 flex items-center gap-1.5 text-[11px] text-black/30 hover:text-black/60 transition-colors"
-            >
-              <span>{t('common.powered_by', { defaultValue: 'Powered by' })}</span>
-              <span className="font-semibold tracking-tight text-black/50 group-hover:text-black/70">LearnHouse</span>
-            </a>
           </div>
         </div>
       </div>

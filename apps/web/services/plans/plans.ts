@@ -29,10 +29,7 @@ export function planMeetsRequirement(
   currentPlan: PlanLevel,
   requiredPlan: PlanLevel
 ): boolean {
-  if (currentPlan === 'oss') return requiredPlan !== 'enterprise'
-  const currentIndex = PLAN_HIERARCHY.indexOf(currentPlan)
-  const requiredIndex = PLAN_HIERARCHY.indexOf(requiredPlan)
-  return currentIndex >= requiredIndex
+  return true
 }
 
 /**
@@ -45,10 +42,5 @@ export function planMeetsRequirement(
  * - SaaS: always returns true (callers should check resolved_features)
  */
 export function isFeatureAvailable(featureKey: string, _currentPlan?: PlanLevel): boolean {
-  const mode = getDeploymentMode()
-  if (mode === 'oss') return !OSS_BLOCKED_FEATURES.has(featureKey)
-  if (mode === 'ee') return true
-  // SaaS: resolved_features from the API is the source of truth.
-  // Return true here — callers gate on resolved_features separately.
   return true
 }

@@ -173,11 +173,7 @@ export const getBackendUrl = () => getLEARNHOUSE_BACKEND_URL()
  * Returns null in OSS/self-hosted mode or when platform URL is not configured.
  */
 export const getUpgradeUrl = (orgSlug: string): string | null => {
-  const mode = getDeploymentMode()
-  if (mode === 'oss' || mode === 'ee') return null
-  const platformUrl = getLEARNHOUSE_PLATFORM_URL()
-  if (!platformUrl) return null
-  return `${platformUrl}/dashboard/${orgSlug}/plan`
+  return null
 }
 
 /**

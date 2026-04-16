@@ -255,29 +255,13 @@ def get_plan_feature_config(plan: str, feature: str) -> dict:
 
 
 def is_feature_enabled_for_plan(plan: str, feature: str) -> bool:
-    """Check if a feature is enabled for a given plan."""
-    from src.core.deployment_mode import get_deployment_mode
-    mode = get_deployment_mode()
-    if mode == 'ee':
-        return True
-    if mode == 'oss':
-        # OSS enables all non-EE features
-        return feature not in ('analytics', 'api', 'sso', 'audit_logs', 'scorm')
-    return get_plan_feature_config(plan, feature).get("enabled", False)
+    """All features are enabled."""
+    return True
 
 
 def get_feature_limit_for_plan(plan: str, feature: str) -> int:
-    """
-    Get the limit for a specific feature from the plan config.
-
-    Returns:
-        The limit (0 = unlimited).
-    """
-    from src.core.deployment_mode import get_deployment_mode
-    mode = get_deployment_mode()
-    if mode != 'saas':
-        return 0  # Unlimited in EE and OSS modes
-    return get_plan_feature_config(plan, feature).get("limit", 0)
+    """All features are unlimited."""
+    return 0
 
 
 def get_plan_config(plan: str) -> dict:
@@ -286,54 +270,18 @@ def get_plan_config(plan: str) -> dict:
 
 
 def get_ai_credit_limit(plan: str) -> int:
-    """
-    Get the AI credit limit for a specific plan.
-
-    Returns:
-        The AI credit limit (0 = no access, -1 = unlimited)
-    """
-    from src.core.deployment_mode import get_deployment_mode
-    mode = get_deployment_mode()
-    if mode != 'saas':
-        return -1  # Unlimited in EE and OSS modes
-    return AI_CREDIT_LIMITS.get(plan, 0)
+    """AI credits are unlimited."""
+    return -1
 
 
 def get_plan_limit(plan: str, feature: str) -> int:
-    """
-    Get the limit for a plan-based feature (courses, members, admin_seats).
-
-    Returns:
-        The limit for the feature (0 means unlimited)
-    """
-    from src.core.deployment_mode import get_deployment_mode
-    mode = get_deployment_mode()
-    if mode != 'saas':
-        return 0  # Unlimited in EE and OSS modes
-    plan_limits = PLAN_LIMITS.get(plan, PLAN_LIMITS["free"])
-    return plan_limits.get(feature, 0)
+    """All plan limits are unlimited."""
+    return 0
 
 
 def plan_meets_requirement(current_plan: str, required_plan: str) -> bool:
-    """
-    Check if the current plan meets or exceeds the required plan level.
-    """
-    from src.core.deployment_mode import get_deployment_mode
-    mode = get_deployment_mode()
-    if mode == 'ee':
-        return True
-    if mode == 'oss':
-        return required_plan != 'enterprise'
-    # SaaS: normal hierarchy check
-    try:
-        current_index = PLAN_HIERARCHY.index(current_plan)
-    except ValueError:
-        current_index = 0
-    try:
-        required_index = PLAN_HIERARCHY.index(required_plan)
-    except ValueError:
-        required_index = 0
-    return current_index >= required_index
+    """All plan requirements are met."""
+    return True
 
 
 def get_required_plan_for_feature(feature_key: str) -> PlanLevel | None:
